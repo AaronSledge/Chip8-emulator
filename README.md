@@ -3,13 +3,15 @@ A chip8 emulator is used to play older 8 bit games. This was coded entirely in c
 
 # REQUIRMENTS
 Cmake installed
+SDL3 installed
 C++ compiler
 
 # HOW TO PLAY:
 After copying the repo, type in the command line: 
 cmake -S . -B build
 cmake --build build
-Then CD into the build folder, then debug folder. Any .ch8 file are games that you are able to play. In the command line type: 
+Add any .ch8 files into the debug folder inside the build file. 
+Then CD into the build folder, then debug folder. Run this line of code in the command line.
 .\Chip8Emu 10 5 test_opcode.ch8
 
 Have fun!
