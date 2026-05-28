@@ -1,37 +1,55 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
+
 project(Chip8Emu)
 
-# Set C++ standard just tells cmake to compile using c++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Source files
 set(SOURCES
     main.cpp
     Chip8.cpp
     Platform.cpp
 )
 
-# Add executable
 add_executable(Chip8Emu ${SOURCES})
-# -----------------------------
-# SDL3 paths
-# -----------------------------
-set(SDL3_ROOT "C:/Users/User/Downloads/SDL3-devel-3.4.0-mingw/SDL3-3.4.0/x86_64-w64-mingw32")
-set(SDL3_INCLUDE_DIR "${SDL3_ROOT}/include")          # include folder
-set(SDL3_LIBRARY "${SDL3_ROOT}/lib/libSDL3.dll.a")   # main SDL3 library
 
-# Include headers
-include_directories(${SDL3_INCLUDE_DIR})
+# -----------------------------------
+# Try installed SDL3 first
+# -----------------------------------
+find_package(SDL3 QUIET)
 
-# Link libraries
-target_link_libraries(Chip8Emu PRIVATE ${SDL3_LIBRARY})
+# -----------------------------------
+# If SDL3 is not installed,
+# download it automatically
+# -----------------------------------
+if(NOT SDL3_FOUND) {
+    
 
-# Optional: copy SDL3.dll to build folder after build (so your program runs)
-add_custom_command(TARGET Chip8Emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${SDL3_ROOT}/bin/SDL3.dll"
-    $<TARGET_FILE_DIR:Chip8Emu>
-)
+    include(FetchContent)
 
+    #defines depednecy
+    FetchContent_Declare(
+        SDL3 #name of dependency: could technically be named anything
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git #where to clone dependency
+        GIT_TAG release-3.2.16 #which version to download
+        GIT_SHALLOW TRUE #makes only a shallow clone
+    )
 
+    set(SDL_SHARED ON) #build sdl as a shared libary for windows, linux, macOS
+    set(SDL_STATIC OFF) #No static libary only dynamic
+
+    FetchContent_MakeAvailable(SDL3) #downloads and build SDL
+}
+
+# Link SDL3
+target_link_libraries(Chip8Emu PRIVATE SDL3::SDL3)
+
+# Copy SDL DLL automatically on Windows
+if(WIN32) {
+    add_custom_command(TARGET Chip8Emu POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_RUNTIME_DLLS:Chip8Emu>
+        $<TARGET_FILE_DIR:Chip8Emu>
+        COMMAND_EXPAND_LISTS
+    )
+}
